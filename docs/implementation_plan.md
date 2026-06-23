@@ -23,9 +23,8 @@
 13. [Environment Variables](#13-environment-variables)
 14. [Running the System](#14-running-the-system)
 15. [Tests](#15-tests)
-16. [What Was Cut and Why](#16-what-was-cut-and-why)
-17. [What Is Complete](#17-what-is-complete)
-18. [Remaining Work](#18-remaining-work)
+16. [What Is Complete](#16-what-is-complete)
+17. [Remaining Work](#17-remaining-work)
 
 ---
 
@@ -686,30 +685,7 @@ No real database required — all DB calls go through a `MagicMock` session fixt
 
 ---
 
-## 16. What Was Cut and Why
-
-| Original Plan | Decision | Reason |
-|---|---|---|
-| LangGraph state machine | Cut | Claude + MCP prompts achieve the same result with far less code |
-| Jinja2 UI + SSE streaming | Cut | Claude Desktop is a better UI — streaming, file upload, markdown all built in |
-| LangChain | Cut | Not needed without LangGraph |
-| Planner node (query generation) | Cut | Claude generates search queries internally |
-| Per-node agent Python classes | Cut | Prompt templates in `ai/prompts/` replace them |
-| Tavily as primary job discovery | Demoted to fallback | Claude's web search finds real individual postings; Tavily returns aggregator pages |
-| `POST /pipeline/run` + SSE | Cut | Pipeline runs inside Claude Desktop session |
-| REST API (`api/v1/`) | Cut | Claude's MCP tools handle all data ops; admin panel covers inspection |
-| Pydantic schemas (`schemas/`) | Cut | No REST API means no request/response schemas needed |
-| `tailor_resume_bullets` tool | Descoped | Not core to the portfolio demo |
-| User authentication / JWT | Cut | Single user assumed for portfolio demo |
-| Redis / Celery | Cut | Not needed in single-user MCP architecture |
-| Multi-class model files | Split | One file per class, CamelCase filename matching class name |
-| `services/` folder | Renamed + moved | Now `ai/utils/` with CamelCase class names, static method pattern |
-| Regex URL parsing in `JobSearchUtils` | Replaced | `urllib.parse.urlparse` with `_extract_domain_base` helper |
-| Smoke test code in `mcp_server_client.py` | Removed | Client now only lists available tools and prompts |
-
----
-
-## 17. What Is Complete
+## 16. What Is Complete
 
 ### Core pipeline (MCP / Claude Desktop)
 - [x] Onboarding: greet → email → create_user → returning user detection → resume upload
@@ -749,7 +725,7 @@ No real database required — all DB calls go through a `MagicMock` session fixt
 
 ---
 
-## 18. Remaining Work
+## 17. Remaining Work
 
 ### High priority
 - [ ] **Outcome feedback loop** — store interview/offer outcomes to memory so letters that led to interviews are prioritized in RAG retrieval
