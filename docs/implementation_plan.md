@@ -640,9 +640,9 @@ venv\Scripts\python.exe -m uvicorn autoapply.main:app --host 0.0.0.0 --port 8000
 {
   "mcpServers": {
     "autoapply": {
-      "command": "C:\\Users\\PMLS\\Desktop\\AutoApply\\venv\\Scripts\\python.exe",
-      "args": ["C:\\Users\\PMLS\\Desktop\\AutoApply\\autoapply\\ai\\mcp_server\\mcp_server.py"],
-      "env": { "PYTHONPATH": "C:\\Users\\PMLS\\Desktop\\AutoApply" }
+      "command": "C:\\path\\to\\AutoApply\\venv\\Scripts\\python.exe",
+      "args": ["C:\\path\\to\\AutoApply\\autoapply\\ai\\mcp_server\\mcp_server.py"],
+      "env": { "PYTHONPATH": "C:\\path\\to\\AutoApply" }
     }
   }
 }
