@@ -510,9 +510,9 @@ Claude: [AGENT_INSTRUCTIONS active]
          To set up your profile, what is your email address?"
         [does NOT call create_user yet — no email yet]
 
-User:  "zahrayasin2209@gmail.com"
+User:  "your@email.com"
        ↓
-Claude: calls create_user(name="Zahra Yasin", email="zahrayasin2209@gmail.com")
+Claude: calls create_user(name="Zahra Yasin", email="your@email.com")
         • New user  → "Profile set! Please upload your resume PDF using the + button."
         • Returning → "Welcome back, Zahra! Upload a new resume or jump to job search?"
 
@@ -627,7 +627,7 @@ venv\Scripts\python.exe -m alembic upgrade head
 
 ### Start FastAPI server
 ```bash
-cd C:\Users\PMLS\Desktop\AutoApply
+cd C:\path\to\AutoApply
 venv\Scripts\python.exe -m uvicorn autoapply.main:app --host 0.0.0.0 --port 8000
 ```
 

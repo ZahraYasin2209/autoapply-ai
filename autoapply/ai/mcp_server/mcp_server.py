@@ -8,9 +8,9 @@ Claude Desktop config (%APPDATA%\\Claude\\claude_desktop_config.json):
 {
   "mcpServers": {
     "autoapply": {
-      "command": "C:\\\\Users\\\\PMLS\\\\Desktop\\\\AutoApply\\\\venv\\\\Scripts\\\\python.exe",
-      "args": ["C:\\\\Users\\\\PMLS\\\\Desktop\\\\AutoApply\\\\autoapply\\\\ai\\\\mcp_server\\\\mcp_server.py"],
-      "env": { "PYTHONPATH": "C:\\\\Users\\\\PMLS\\\\Desktop\\\\AutoApply" }
+      "command": "C:\\\\path\\\\to\\\\AutoApply\\\\venv\\\\Scripts\\\\python.exe",
+      "args": ["C:\\\\path\\\\to\\\\AutoApply\\\\autoapply\\\\ai\\\\mcp_server\\\\mcp_server.py"],
+      "env": { "PYTHONPATH": "C:\\\\path\\\\to\\\\AutoApply" }
     }
   }
 }
