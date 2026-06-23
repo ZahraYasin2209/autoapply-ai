@@ -1,8 +1,8 @@
 # AutoApply — Implementation Plan
 
 **Author:** Zahra Yasin
-**Version:** 5.0 (updated June 2026)
-**Stack:** FastAPI · PostgreSQL + pgvector · sentence-transformers · Claude Desktop (MCP) · Tavily API · Groq (server-side LLM utils)
+**Version:** 5.1 (updated June 2026)
+**Stack:** FastAPI · PostgreSQL + pgvector · sentence-transformers · Claude Desktop (MCP) · Tavily API
 
 ---
 
@@ -40,7 +40,6 @@ AutoApply is an autonomous AI job application system. Given a resume and prefere
 
 **Core differentiator:** Claude Desktop is the primary intelligence layer via MCP. The Python backend fetches and stores data — Claude does all reasoning, scoring, writing, and reviewing. The system learns from every approved cover letter via pgvector RAG.
 
-The backend also contains Groq-powered util classes (`CoverLetterUtils`, `FitScorerUtils`, `CriticUtils`) that implement the same pipeline server-side — kept as a reference implementation and potential REST API backend.
 
 ---
 
@@ -74,9 +73,8 @@ User ──► Claude Desktop chat
 | Component | Choice | Notes |
 |---|---|---|
 | Web framework | FastAPI | Admin panel mount + `/health` endpoint |
-| Primary intelligence | Claude Desktop via MCP | All LLM reasoning in the MCP flow |
+| Primary intelligence | Claude Desktop via MCP | All LLM reasoning — Claude does scoring, writing, reviewing |
 | MCP SDK | FastMCP (`mcp` package) | Exposes tools + prompts to Claude Desktop |
-| Server-side LLM | Groq `llama-3.3-70b-versatile` via `langchain-groq` | Used in util classes (`CoverLetterUtils`, `FitScorerUtils`, `CriticUtils`) |
 | Job discovery | Claude's built-in web search | Primary. Finds real postings on greenhouse.io, lever.co, arc.dev etc. |
 | Job search fallback | Tavily API | Secondary. Filters out job board listing pages. |
 | Embeddings | `sentence-transformers` `all-MiniLM-L6-v2` | Local, 384 dims, no API key, singleton pattern |
@@ -99,8 +97,8 @@ AutoApply/
 │
 ├── config/
 │   └── settings/
-│       └── base.py              # DATABASE_URL, TAVILY_API_KEY, GROQ_API_KEY,
-│                                # EMBEDDING_MODEL, MEMORY_TOP_K, CRITIC_MAX_REVISIONS etc.
+│       └── base.py              # DATABASE_URL, TAVILY_API_KEY,
+│                                # EMBEDDING_MODEL, MEMORY_TOP_K etc.
 │
 ├── autoapply/
 │   ├── main.py                  # FastAPI app + SQLAdmin registration + /health
@@ -145,9 +143,9 @@ AutoApply/
 │       │   ├── resume_uploaded.py     # RESUME_UPLOADED_PROMPT
 │       │   ├── run_pipeline.py        # PIPELINE_PROMPT — full pipeline steps
 │       │   ├── improve_cover_letter.py# IMPROVE_PROMPT — refine a cover letter
-│       │   ├── cover_letter.py        # COVER_LETTER_PROMPT — server-side LLM generation
-│       │   ├── fit_score.py           # FIT_PROMPT — server-side fit scoring
-│       │   └── critic.py              # CRITIC_PROMPT, REVISION_PROMPT — server-side critic
+│       │   ├── cover_letter.py        # COVER_LETTER_PROMPT (reserved)
+│       │   ├── fit_score.py           # FIT_PROMPT (reserved)
+│       │   └── critic.py              # CRITIC_PROMPT, REVISION_PROMPT (reserved)
 │       │
 │       ├── utils/               # Static-method classes for all backend logic
 │       │   ├── __init__.py
@@ -158,10 +156,6 @@ AutoApply/
 │       │   │                    # Filters job board domains, urlparse for URL parsing
 │       │   ├── ContextUtils.py  # get_fit_context(), get_cover_letter_context()
 │       │   │                    # Both use pgvector cosine search for relevant chunks
-│       │   ├── FitScorerUtils.py# score_job_fit() — Groq LLM, returns Job with scores set
-│       │   ├── CoverLetterUtils.py # generate_cover_letter(), clean_cover_letter()
-│       │   │                       # clean_cover_letter() strips em dashes, bullets, double commas
-│       │   ├── CriticUtils.py   # critique_and_revise() — Groq LLM, loops up to CRITIC_MAX_REVISIONS
 │       │   ├── SaveUtils.py     # save_fit_score(), save_cover_letter(), save_critic_review()
 │       │   │                    # save_critic_review auto-stores to RAG on APPROVE
 │       │   └── MemoryUtils.py   # store_memory(), retrieve_memory(), store_approved_cover_letter()
@@ -179,9 +173,6 @@ AutoApply/
 │   ├── test_JobSearchUtils.py
 │   ├── test_ContextUtils.py
 │   ├── test_ResumeUtils.py
-│   ├── test_FitScorerUtils.py
-│   ├── test_CoverLetterUtils.py
-│   ├── test_CriticUtils.py
 │   ├── test_SaveUtils.py
 │   └── test_MemoryUtils.py
 │
@@ -345,15 +336,7 @@ stored_at       TIMESTAMP
 | `run_pipeline.py` | `PIPELINE_PROMPT` | `run_pipeline` MCP prompt |
 | `improve_cover_letter.py` | `IMPROVE_PROMPT` | `improve_cover_letter` MCP prompt |
 
-### Server-side LLM prompts (Groq utils flow)
-
-| File | Constant(s) | Used by |
-|---|---|---|
-| `cover_letter.py` | `COVER_LETTER_PROMPT` | `CoverLetterUtils.generate_cover_letter()` |
-| `fit_score.py` | `FIT_PROMPT` | `FitScorerUtils.score_job_fit()` |
-| `critic.py` | `CRITIC_PROMPT`, `REVISION_PROMPT` | `CriticUtils.critique_and_revise()` |
-
-`__init__.py` exports all 9 constants.
+`__init__.py` exports all 6 constants.
 
 ---
 
@@ -571,15 +554,6 @@ Enforced in `AGENT_INSTRUCTIONS`, `PIPELINE_PROMPT`, `COVER_LETTER_PROMPT`, `CRI
 - **Para 3:** What you bring to this specific team. Reference something real about the company.
 - **Para 4:** Thank them. Eager to discuss. Clear call to action.
 
-### Post-processing (`clean_cover_letter`)
-
-`CoverLetterUtils.clean_cover_letter()` runs deterministically after every LLM generation:
-- Converts em dashes to `, `
-- Converts ` - ` to `, `
-- Collapses double commas
-- Strips leading bullet characters (`•`, `-`, `*`) from line starts
-- Strips surrounding whitespace
-
 ### Self-check (Claude runs this before saving in MCP flow)
 ```
 ✗ Any em dash (—) or hyphen between phrases? → rewrite that sentence
@@ -600,16 +574,13 @@ DATABASE_URL=postgresql://autoapply:password@localhost:5432/autoapply_db
 # Job Search (Tavily — secondary fallback)
 TAVILY_API_KEY=tvly-...
 
-# Server-side LLM (Groq — used in FitScorerUtils, CoverLetterUtils, CriticUtils)
-GROQ_API_KEY=gsk_...
-
 # App
 SECRET_KEY=change-me-in-production
 DEBUG=True
 UPLOAD_DIR=./uploads
 ```
 
-Both `TAVILY_API_KEY` and `GROQ_API_KEY` default to `""` — the server does not crash if either is missing. The Tavily tool returns early; Groq utils will raise at LLM call time.
+`TAVILY_API_KEY` defaults to `""` — the server does not crash if missing. The Tavily tool returns early and tells Claude to fall back to web search.
 
 ---
 
@@ -677,9 +648,6 @@ No real database required — all DB calls go through a `MagicMock` session fixt
 | `test_JobSearchUtils.py` | Domain extraction, job board detection, company parsing, query building, store new/existing job |
 | `test_ContextUtils.py` | Fit context and cover letter context — expected keys, fallback to raw_text, raises on missing job/resume |
 | `test_ResumeUtils.py` | PDF extraction (None pages), `ingest_resume`, `ingest_resume_from_text` — creates/updates records |
-| `test_FitScorerUtils.py` | Mocked Groq LLM — happy path sets job attributes, raises on missing job/resume, raises on bad JSON |
-| `test_CoverLetterUtils.py` | `clean_cover_letter` deterministic cases (em dash, bullet, double comma, compound adjective), `generate_cover_letter` creates DB records and applies post-processing |
-| `test_CriticUtils.py` | Approve on first attempt, REVISE→APPROVE cycle, raises on missing application/cover letter, stops after max revisions |
 | `test_SaveUtils.py` | `save_fit_score`, `save_cover_letter`, `save_critic_review` APPROVE/REVISE paths, missing entity raises |
 | `test_MemoryUtils.py` | `store_memory`, `retrieve_memory` with/without type filter, `store_approved_cover_letter` returns None when missing/not approved |
 
@@ -720,7 +688,7 @@ No real database required — all DB calls go through a `MagicMock` session fixt
 - [x] `file_path` shows "(uploaded via chat)" when null
 
 ### Tests
-- [x] `conftest.py` + 10 test files covering all util classes
+- [x] `conftest.py` + 7 test files covering all util classes
 - [x] No real DB required — fully mocked with `unittest.mock`
 
 ---

@@ -63,7 +63,7 @@ pip install -r config/requirements/dev.txt
 
 ```bash
 cp .env.example .env
-# Edit .env — set DATABASE_URL, TAVILY_API_KEY, GROQ_API_KEY
+# Edit .env — set DATABASE_URL, TAVILY_API_KEY
 ```
 
 ### 4. Start the database
@@ -169,7 +169,6 @@ docs/                     # Implementation plan
 |---|---|---|
 | `DATABASE_URL` | Yes | PostgreSQL connection string |
 | `TAVILY_API_KEY` | No | Tavily job search (fallback — Claude web search is primary) |
-| `GROQ_API_KEY` | No | Groq API key for server-side LLM utils |
 | `SECRET_KEY` | No | App secret (for future auth) |
 | `DEBUG` | No | Enable debug mode (default: False) |
 
