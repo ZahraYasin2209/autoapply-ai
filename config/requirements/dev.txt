@@ -1,0 +1,3 @@
+# Generated from dev.in
+-r base.txt
+ipdb==0.13.13
